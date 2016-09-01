@@ -88,11 +88,10 @@ PhotoSphereViewer.prototype._loadXMP = function() {
 /**
  * Loads the sphere texture
  * @param {String} pano - The panorama image uri - if not set, use config.panorama
- * @param {Function} progressCallback - The callback that will be invoked while loading the panorama image, with the percentage as argument.
  * @returns {promise}
  * @private
  */
-PhotoSphereViewer.prototype._loadTexture = function(pano, progressCallback) {
+PhotoSphereViewer.prototype._loadTexture = function(pano) {
   var self = this;
   var targetPano = pano || self.config.panorama;
 
@@ -173,9 +172,7 @@ PhotoSphereViewer.prototype._loadTexture = function(pano, progressCallback) {
         if (new_progress > progress) {
           progress = new_progress;
           self.loader.setProgress(progress);
-        }
-        if (progressCallback instanceof Function) {
-          progressCallback(new_progress);
+          self.trigger('panorama-load-progress', targetPano, progress);
         }
       }
     };

@@ -491,16 +491,14 @@ PhotoSphereViewer.prototype.stopKeyboardControl = function() {
 /**
  * Manually preload a panorama image (without showing it) and save it into internal cache.
  * @param {String} pano - the file path
- * @param {Function} callback - Progress callback, will receive the percentage as argument.
  * @return {promise|false}
  */
-PhotoSphereViewer.prototype.preloadPano = function(pano, callback) {
+PhotoSphereViewer.prototype.preloadPano = function(pano) {
   if (false === this.config.caching.enabled) {
     console.warn('The cache is disabled. Please use caching.enabled: true.');
     return false;
   }
-  var progressCallback = callback || null;
-  return this._loadTexture(pano, progressCallback);
+  return this._loadTexture(pano);
 };
 
 /**
