@@ -114,10 +114,30 @@
         }())
       },
       {
-        id: 'disabled',
+        id: 'nukem',
         title: 'This button is disabled',
-        content: '❌',
-        enabled: false
+        content: '&zeta;',
+        enabled: true,
+        onClick: function(){
+          PSV.preloadPano('18-20.jpg').then(function(a20){
+            console.log('LOADED 18-20');
+          });
+          PSV.preloadPano('18-21.jpg').then(function(a21){
+            console.log('LOADED 18-21');
+          });
+          PSV.preloadPano('18-22.jpg').then(function(a22){
+            console.log('LOADED 18-22');
+          });
+          PSV.preloadPano('18-23.jpg').then(function(a23){
+            console.log('LOADED 18-23');
+          });
+          PSV.preloadPano('18-24.jpg').then(function(a24){
+            console.log('LOADED 18-24');
+          });
+          PSV.preloadPano('18-25.jpg').then(function(a25){
+            console.log('LOADED 18-25');
+          });
+        }
       },
       'caption',
       'gyroscope',
@@ -298,6 +318,11 @@
 
       return a;
     }())
+  });
+
+  PSV.on('panorama-load-progress', function(p, i){
+    console.log("\n\n\t\t"+"*".repeat(5)+" ( PIIIIP "+"*".repeat(5)+"\n");
+    console.log(p, i);
   });
 
   PSV.on('click', function(e) {

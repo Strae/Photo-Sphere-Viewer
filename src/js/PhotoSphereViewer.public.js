@@ -499,7 +499,7 @@ PhotoSphereViewer.prototype.preloadPano = function(pano) {
     console.warn('The cache is disabled. Please use caching.enabled: true.');
     return false;
   }
-  return this._loadTexture(pano);
+  return this._preloadPanorama(pano);
 };
 
 /**

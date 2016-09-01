@@ -423,9 +423,8 @@ PhotoSphereViewer.prototype._loadTexture = function(pano) {
           xmpdata: pano_data,
           texture: texture
         };
-        self._savePanoCache(targetPano, tmpCacheItem).then(function() {
-          self.trigger('pano-preloaded', targetPano);
-        });
+        self._savePanoCache(targetPano, tmpCacheItem);
+        self.trigger('pano-preloaded', targetPano);
       }
       defer.resolve(texture, pano_data);
     };
@@ -758,17 +757,18 @@ PhotoSphereViewer.prototype._normalizeCacheSize = function() {
  * Save a panorama into the internal cache.
  * @param {String} pano - The panorama path
  * @param {Object} item - The panorama cache item.
- * @return {Promise}
+ * @return {Bool}
  */
 PhotoSphereViewer.prototype._savePanoCache = function(pano, item) {
-  var defer = D();
-  var self = this;
-  this._normalizeCacheSize().then(function() {
-    self.prop.cache.registry.push(pano);
-    self.prop.cache.items[pano] = item;
-    defer.resolve(pano);
-  });
-  return defer.promise;
+  // If cache item already present..
+  if('undefined' !== typeof this.prop.cache.items[pano]){
+    this.prop.cache.registry.splice(this.prop.cache.registry.indexOf('pano'), 1);
+    this.prop.cache.items[pano] = null;
+    delete this.prop.cache.items[pano];
+  }
+  this.prop.cache.registry.push(pano);
+  this.prop.cache.items[pano] = item;
+  return true;
 };
 
 /**
@@ -784,6 +784,111 @@ PhotoSphereViewer.prototype._getPanoCache = function(pano) {
     // May be worth throwing an exception?
     return null;
   }
+};
+
+/**
+ * Preload a panorama image and store it into the cache.
+ * @param {String} pano - The panorama image uri - if not set, use config.panorama
+ * @returns {promise}
+ * @private
+ */
+PhotoSphereViewer.prototype._preloadPanorama = function(pano) {
+  var self = this;
+
+  var tmpCacheItem = {
+    path: pano,
+    xmpdata: null,
+    texture: null,
+    _internals: {
+      loader: null,
+      progress: 0,
+      state: 0 // 0 not loaded, 1 loading, 2 loaded.
+    }
+  };
+
+  self._savePanoCache(pano, tmpCacheItem);
+
+  return this._loadXMP().then(function(pano_data) {
+    var defer = D();
+    tmpCacheItem._internals.loader = new THREE.ImageLoader();
+    tmpCacheItem._internals.progress = pano_data ? 100 : 0;
+
+    tmpCacheItem._internals.loader.setCrossOrigin('anonymous');
+
+    var onload = function(img) {
+      // Config XMP data
+      if (!pano_data && self.config.pano_data) {
+        pano_data = PSVUtils.clone(self.config.pano_data);
+      }
+
+      // Default XMP data
+      if (!pano_data) {
+        pano_data = {
+          full_width: img.width,
+          full_height: img.height,
+          cropped_width: img.width,
+          cropped_height: img.height,
+          cropped_x: 0,
+          cropped_y: 0
+        };
+      }
+
+      var r = Math.min(pano_data.full_width, PhotoSphereViewer.SYSTEM.maxTextureWidth) / pano_data.full_width;
+      var resized_pano_data = PSVUtils.clone(pano_data);
+
+      resized_pano_data.full_width *= r;
+      resized_pano_data.full_height *= r;
+      resized_pano_data.cropped_width *= r;
+      resized_pano_data.cropped_height *= r;
+      resized_pano_data.cropped_x *= r;
+      resized_pano_data.cropped_y *= r;
+
+      img.width = resized_pano_data.cropped_width;
+      img.height = resized_pano_data.cropped_height;
+
+      // create a new image containing the source image and black for cropped parts
+      var buffer = document.createElement('canvas');
+      buffer.width = resized_pano_data.full_width;
+      buffer.height = resized_pano_data.full_height;
+
+      var ctx = buffer.getContext('2d');
+      ctx.drawImage(img, resized_pano_data.cropped_x, resized_pano_data.cropped_y, resized_pano_data.cropped_width, resized_pano_data.cropped_height);
+
+      var texture = new THREE.Texture(buffer);
+      texture.needsUpdate = true;
+      texture.minFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+
+      tmpCacheItem.xmpdata = pano_data;
+      tmpCacheItem.texture = texture;
+      tmpCacheItem._internals.state = 2;
+      // Destroy the loader.
+      delete tmpCacheItem._internals.loader;
+
+      self._savePanoCache(pano, tmpCacheItem);
+      self.trigger('pano-preloaded', pano);
+
+      defer.resolve(tmpCacheItem);
+    };
+
+    var onprogress = function(e) {
+      if (e.lengthComputable && tmpCacheItem._internals.loader) {
+        var new_progress = parseInt(e.loaded / e.total * 100);
+
+        tmpCacheItem._internals.state = 1;
+        self.trigger('panorama-load-progress', pano, new_progress);
+        self._savePanoCache(pano, tmpCacheItem);
+      }
+    };
+
+    var onerror = function() {
+      defer.reject(false);
+      throw new PSVError('Cannot load image');
+    };
+
+    tmpCacheItem._internals.loader.load(pano, onload, onprogress, onerror);
+    return defer.promise;
+  });
 };
 
 
@@ -1854,7 +1959,7 @@ PhotoSphereViewer.prototype.preloadPano = function(pano) {
     console.warn('The cache is disabled. Please use caching.enabled: true.');
     return false;
   }
-  return this._loadTexture(pano);
+  return this._preloadPanorama(pano);
 };
 
 /**
