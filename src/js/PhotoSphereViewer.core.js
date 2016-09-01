@@ -612,6 +612,7 @@ PhotoSphereViewer.prototype._preloadPanorama = function(pano) {
         var new_progress = parseInt(e.loaded / e.total * 100);
 
         tmpCacheItem._internals.state = 1;
+        tmpCacheItem._internals.progress = new_progress;
         self.trigger('panorama-load-progress', pano, new_progress);
         self._savePanoCache(pano, tmpCacheItem);
       }
