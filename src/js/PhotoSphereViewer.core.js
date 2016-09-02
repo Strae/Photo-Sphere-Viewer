@@ -160,7 +160,7 @@ PhotoSphereViewer.prototype._loadTexture = function(pano) {
           texture: texture
         };
         self._savePanoCache(targetPano, tmpCacheItem);
-        self.trigger('pano-preloaded', targetPano);
+        self.trigger('pano-preloaded', tmpCacheItem);
       }
       defer.resolve(texture, pano_data);
     };
@@ -528,8 +528,9 @@ PhotoSphereViewer.prototype._getPanoCache = function(pano) {
  * @returns {promise}
  * @private
  */
-PhotoSphereViewer.prototype._preloadPanorama = function(pano) {
+PhotoSphereViewer.prototype._preloadPanorama = function(pano, info) {
   var self = this;
+  var pInfo = info || null;
 
   var tmpCacheItem = {
     path: pano,
@@ -602,7 +603,7 @@ PhotoSphereViewer.prototype._preloadPanorama = function(pano) {
       delete tmpCacheItem._internals.loader;
 
       self._savePanoCache(pano, tmpCacheItem);
-      self.trigger('pano-preloaded', pano);
+      self.trigger('pano-preloaded', tmpCacheItem, pInfo);
 
       defer.resolve(tmpCacheItem);
     };
@@ -613,7 +614,7 @@ PhotoSphereViewer.prototype._preloadPanorama = function(pano) {
 
         tmpCacheItem._internals.state = 1;
         tmpCacheItem._internals.progress = new_progress;
-        self.trigger('panorama-load-progress', pano, new_progress);
+        self.trigger('panorama-load-progress', pano, new_progress, pInfo);
         self._savePanoCache(pano, tmpCacheItem);
       }
     };
