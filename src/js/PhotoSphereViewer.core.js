@@ -4,7 +4,7 @@
  * @returns {promise}
  * @private
  */
-PhotoSphereViewer.prototype._loadXMP = function (panorama) {
+PhotoSphereViewer.prototype._loadXMP = function(panorama) {
   if (!this.config.usexmpdata) {
     return D.resolved(null);
   }
@@ -87,7 +87,7 @@ PhotoSphereViewer.prototype._loadXMP = function (panorama) {
  * @returns {promise}
  * @private
  */
-PhotoSphereViewer.prototype._loadTexture = function (panorama) {
+PhotoSphereViewer.prototype._loadTexture = function(panorama) {
   var self = this;
 
   if (this.config.cache_texture) {
@@ -100,7 +100,7 @@ PhotoSphereViewer.prototype._loadTexture = function (panorama) {
     }
   }
 
-  return this._loadXMP(panorama).then(function (pano_data) {
+  return this._loadXMP(panorama).then(function(pano_data) {
     var defer = D();
     var loader = new THREE.ImageLoader();
     var progress = pano_data ? 100 : 0;
@@ -443,7 +443,7 @@ PhotoSphereViewer.prototype._reverseAutorotate = function() {
  *    - pano_data
  * @private
  */
-PhotoSphereViewer.prototype._putPanoramaCache = function (cache) {
+PhotoSphereViewer.prototype._putPanoramaCache = function(cache) {
   if (!this.config.cache_texture) {
     throw new PSVError('Cannot add panorama to cache, cache_texture is disabled');
   }
