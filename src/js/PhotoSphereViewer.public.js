@@ -183,6 +183,9 @@ PhotoSphereViewer.prototype.destroy = function() {
  * @returns {promise}
  */
 PhotoSphereViewer.prototype.setPanorama = function(path, position, transition) {
+  if(this.isPanoLoading(path)){
+    return D.resolved(false);
+  }
   if (typeof position == 'boolean') {
     transition = position;
     position = undefined;
@@ -523,12 +526,25 @@ PhotoSphereViewer.prototype.clearCachedPanoramas = function(pano) {
  * @return {Boolean} True if the panorama is fully loaded, false otherwise.
  */
 PhotoSphereViewer.prototype.isPanoCached = function(pano) {
-  if ('undefined' === typeof this.prop.cache.items[pano]) {
+  var cachedPano = this._getPanoCache(pano);
+  if (false === cachedPano) {
     return false;
   }
-  return true;
+  return cachedPano._internals.state === 2;
 };
 
+/**
+ * Return true if the panorama is present in the cache.
+ * @param {string} the panorama file path.
+ * @return {Boolean} True if the panorama is fully loaded, false otherwise.
+ */
+PhotoSphereViewer.prototype.isPanoLoading = function(pano) {
+  var cachedPano = this._getPanoCache(pano);
+  if (false === cachedPano) {
+    return false;
+  }
+  return cachedPano._internals.state === 1;
+};
 
 /**
  * Return an estimated size of the cached panoramas.
