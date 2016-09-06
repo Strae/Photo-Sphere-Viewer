@@ -359,6 +359,12 @@ PhotoSphereViewer.prototype._loadTexture = function(pano) {
   var self = this;
   var targetPano = pano || self.config.panorama;
 
+  if (this.isPanoCached(targetPano)) {
+    var cachedPano = this._getPanoCache(targetPano);
+    return D.resolved(cachedPano.texture);
+  }
+
+
   return this._loadXMP().then(function(pano_data) {
     var defer = D();
     var loader = new THREE.ImageLoader();
@@ -421,7 +427,12 @@ PhotoSphereViewer.prototype._loadTexture = function(pano) {
         var tmpCacheItem = {
           path: targetPano,
           xmpdata: pano_data,
-          texture: texture
+          texture: texture,
+          _internals: {
+            loader: null,
+            progress: 100,
+            state: 2
+          }
         };
         self._savePanoCache(targetPano, tmpCacheItem);
         self.trigger('pano-preloaded', tmpCacheItem);
@@ -445,13 +456,7 @@ PhotoSphereViewer.prototype._loadTexture = function(pano) {
       throw new PSVError('Cannot load image');
     };
 
-    if (true === self.config.caching.enabled && true === self.isPanoCached(targetPano)) {
-      var cachedPano = self._getPanoCache(targetPano);
-      defer.resolve(cachedPano.texture);
-    }
-    else {
-      loader.load(targetPano, onload, onprogress, onerror);
-    }
+    loader.load(targetPano, onload, onprogress, onerror);
     return defer.promise;
   });
 };
@@ -589,6 +594,7 @@ PhotoSphereViewer.prototype._transition = function(texture, position) {
 
   // animation with blur/zoom ?
   var original_zoom_lvl = this.prop.zoom_lvl;
+  var max_zoom_lvl = original_zoom_lvl + 15;
   if (this.config.transition.blur) {
     this.passes.copy.enabled = false;
     this.passes.blur.enabled = true;
@@ -610,7 +616,7 @@ PhotoSphereViewer.prototype._transition = function(texture, position) {
       properties: {
         density: { start: 0.0, end: 1.5 },
         opacity: { start: 0.0, end: 0.5 },
-        zoom: { start: original_zoom_lvl, end: 100 }
+        zoom: { start: original_zoom_lvl, end: max_zoom_lvl }
       },
       duration: self.config.transition.duration / (self.config.transition.blur ? 4 / 3 : 2),
       easing: self.config.transition.blur ? 'outCubic' : 'linear',
@@ -782,7 +788,7 @@ PhotoSphereViewer.prototype._getPanoCache = function(pano) {
   }
   else {
     // May be worth throwing an exception?
-    return null;
+    return false;
   }
 };
 
@@ -795,6 +801,10 @@ PhotoSphereViewer.prototype._getPanoCache = function(pano) {
 PhotoSphereViewer.prototype._preloadPanorama = function(pano, info) {
   var self = this;
   var pInfo = info || null;
+
+  if(this.isPanoCached(pano) || this.isPanoLoading(pano)){
+    return D.resolved(this._getPanoCache(pano));
+  }
 
   var tmpCacheItem = {
     path: pano,
@@ -1645,6 +1655,9 @@ PhotoSphereViewer.prototype.destroy = function() {
  * @returns {promise}
  */
 PhotoSphereViewer.prototype.setPanorama = function(path, position, transition) {
+  if(this.isPanoLoading(path)){
+    return D.resolved(false);
+  }
   if (typeof position == 'boolean') {
     transition = position;
     position = undefined;
@@ -1912,7 +1925,7 @@ PhotoSphereViewer.prototype.zoom = function(level, render) {
  */
 PhotoSphereViewer.prototype.zoomIn = function() {
   if (this.prop.zoom_lvl < 100) {
-    this.zoom(this.prop.zoom_lvl + 1);
+    this.zoom(this.prop.zoom_lvl + 5);
   }
 };
 
@@ -1921,7 +1934,7 @@ PhotoSphereViewer.prototype.zoomIn = function() {
  */
 PhotoSphereViewer.prototype.zoomOut = function() {
   if (this.prop.zoom_lvl > 0) {
-    this.zoom(this.prop.zoom_lvl - 1);
+    this.zoom(this.prop.zoom_lvl - 5);
   }
 };
 
@@ -1985,12 +1998,25 @@ PhotoSphereViewer.prototype.clearCachedPanoramas = function(pano) {
  * @return {Boolean} True if the panorama is fully loaded, false otherwise.
  */
 PhotoSphereViewer.prototype.isPanoCached = function(pano) {
-  if ('undefined' === typeof this.prop.cache.items[pano]) {
+  var cachedPano = this._getPanoCache(pano);
+  if (false === cachedPano) {
     return false;
   }
-  return true;
+  return cachedPano._internals.state === 2;
 };
 
+/**
+ * Return true if the panorama is present in the cache.
+ * @param {string} the panorama file path.
+ * @return {Boolean} True if the panorama is fully loaded, false otherwise.
+ */
+PhotoSphereViewer.prototype.isPanoLoading = function(pano) {
+  var cachedPano = this._getPanoCache(pano);
+  if (false === cachedPano) {
+    return false;
+  }
+  return cachedPano._internals.state === 1;
+};
 
 /**
  * Return an estimated size of the cached panoramas.
@@ -4616,7 +4642,7 @@ PSVNavBarZoomButton.prototype.create = function() {
   var zoom_minus = document.createElement('div');
   zoom_minus.className = 'psv-zoom-button-minus';
   zoom_minus.title = this.psv.config.lang.zoomOut;
-  this.setIcon('zoom-out.svg', zoom_minus);
+  //this.setIcon('zoom-out.svg', zoom_minus);
   this.container.appendChild(zoom_minus);
 
   var zoom_range_bg = document.createElement('div');
@@ -4636,11 +4662,11 @@ PSVNavBarZoomButton.prototype.create = function() {
   var zoom_plus = document.createElement('div');
   zoom_plus.className = 'psv-zoom-button-plus';
   zoom_plus.title = this.psv.config.lang.zoomIn;
-  this.setIcon('zoom-in.svg', zoom_plus);
+  //this.setIcon('zoom-in.svg', zoom_plus);
   this.container.appendChild(zoom_plus);
 
-  this.zoom_range.addEventListener('mousedown', this);
-  this.zoom_range.addEventListener('touchstart', this);
+  //this.zoom_range.addEventListener('mousedown', this);
+  //this.zoom_range.addEventListener('touchstart', this);
   this.psv.container.addEventListener('mousemove', this);
   this.psv.container.addEventListener('touchmove', this);
   this.psv.container.addEventListener('mouseup', this);
@@ -4740,7 +4766,7 @@ PSVNavBarZoomButton.prototype._zoomIn = function() {
 
   this.prop.buttondown = true;
   this.psv.zoomIn();
-  window.setTimeout(this._startLongPressInterval.bind(this, 1), 200);
+  //window.setTimeout(this._startLongPressInterval.bind(this, 1), 200);
 };
 
 /**
@@ -4755,7 +4781,7 @@ PSVNavBarZoomButton.prototype._zoomOut = function() {
 
   this.prop.buttondown = true;
   this.psv.zoomOut();
-  window.setTimeout(this._startLongPressInterval.bind(this, -1), 200);
+  //window.setTimeout(this._startLongPressInterval.bind(this, -1), 200);
 };
 
 /**
