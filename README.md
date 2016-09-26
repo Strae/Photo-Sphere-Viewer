@@ -16,6 +16,15 @@ http://photo-sphere-viewer.js.org
  * [uEvent](https://github.com/mistic100/uEvent)
  * [D.js](http://malko.github.io/D.js)
 
+## New Functions
+
+### Caching
+
+ * `PSV.preloadPano()` Preload a panorama image into the internal cache
+ * `PSV.clearCachedPanoramas([pano])` If pano is given, remove it from the cache; Else, clear all the caches.
+ * `PSV.getCacheSize()` Return the number of item cached.
+ * `PSV.getCache()` Return the whole cache element.
+
 ## Build
 
 ### Prerequisites

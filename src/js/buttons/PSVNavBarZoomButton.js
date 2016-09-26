@@ -56,8 +56,8 @@ PSVNavBarZoomButton.prototype.create = function() {
   //this.setIcon('zoom-in.svg', zoom_plus);
   this.container.appendChild(zoom_plus);
 
-  this.zoom_range.addEventListener('mousedown', this);
-  this.zoom_range.addEventListener('touchstart', this);
+  //this.zoom_range.addEventListener('mousedown', this);
+  //this.zoom_range.addEventListener('touchstart', this);
   this.psv.container.addEventListener('mousemove', this);
   this.psv.container.addEventListener('touchmove', this);
   this.psv.container.addEventListener('mouseup', this);
@@ -157,7 +157,7 @@ PSVNavBarZoomButton.prototype._zoomIn = function() {
 
   this.prop.buttondown = true;
   this.psv.zoomIn();
-  window.setTimeout(this._startLongPressInterval.bind(this, 1), 200);
+  //window.setTimeout(this._startLongPressInterval.bind(this, 1), 200);
 };
 
 /**
@@ -172,7 +172,7 @@ PSVNavBarZoomButton.prototype._zoomOut = function() {
 
   this.prop.buttondown = true;
   this.psv.zoomOut();
-  window.setTimeout(this._startLongPressInterval.bind(this, -1), 200);
+  //window.setTimeout(this._startLongPressInterval.bind(this, -1), 200);
 };
 
 /**
