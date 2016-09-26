@@ -157,7 +157,8 @@ function PhotoSphereViewer(options) {
       cropped_height: 0,
       cropped_x: 0,
       cropped_y: 0
-    }
+    },
+    stereo_effect: null
   };
 
   // init templates

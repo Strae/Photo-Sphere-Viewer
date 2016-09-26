@@ -415,3 +415,44 @@ PhotoSphereViewer.prototype._reverseAutorotate = function() {
       self.config.anim_speed = newSpeed;
     });
 };
+
+/**
+ * Starts the stereo effect.
+ * @private
+ * @return {void}
+ **/
+PhotoSphereViewer.prototype._startStereo = function() {
+  /*
+  // Need to fix
+  if (!this.isFullscreenEnabled()) {
+    this.toggleFullscreen();
+  }
+  */
+
+
+  this.prop.stereo_effect = new THREE.StereoEffect(this.renderer);
+  this.prop.stereo_effect.eyeSeparation = this.config.eyeSeparation;
+  this.prop.stereo_effect.setSize(this.prop.size.width, this.prop.size.height);
+  this.render();
+  //this.startGyroscopeControl();
+
+  /**
+   * Indicates that the stereo effect has been toggled.
+   * @callback PhotoSphereViewer~onStereoEffectToggled
+   * @param {boolean} enabled - `true` if stereo effect is enabled, `false` otherwise
+   **/
+  this.trigger('stereo-effect-start');
+};
+
+
+/**
+ * Stops the stereo effect.
+ * @private
+ * @return {void}
+ **/
+PhotoSphereViewer.prototype._stopStereo = function() {
+  this.prop.stereo_effect = null;
+  this.renderer.setSize(this.prop.size.width, this.prop.size.height);
+  this.render();
+  this.trigger('stereo-effect-stop');
+};

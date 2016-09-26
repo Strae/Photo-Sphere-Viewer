@@ -33,6 +33,8 @@
 <script src="../bower_components/D.js/lib/D.min.js"></script>
 <script src="../bower_components/uevent/uevent.min.js"></script>
 <script src="../bower_components/doT/doT.min.js"></script>
+
+<script src="../bower_components/threejs-examples/examples/js/effects/StereoEffect.js"></script>
 <script src="../bower_components/threejs-examples/examples/js/renderers/CanvasRenderer.js"></script>
 <script src="../bower_components/threejs-examples/examples/js/renderers/Projector.js"></script>
 <script src="../bower_components/threejs-examples/examples/js/postprocessing/EffectComposer.js"></script>
@@ -110,6 +112,16 @@
               .then(function() {
                 PSV.setCaption(i ? 'Bryce Canyon National Park <b>&copy; Jess Beauchemin</b>' : 'Bryce Canyon National Park <b>&copy; Mark Doliner</b>');
               });
+          }
+        }())
+      },
+      {
+        title: 'STEREO',
+        className: 'custom-button',
+        content: '&rarrlp;',
+        onClick: (function() {
+          return function(){
+            PSV.toggleStereo();
           }
         }())
       },

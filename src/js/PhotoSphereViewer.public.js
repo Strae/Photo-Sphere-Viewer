@@ -84,7 +84,10 @@ PhotoSphereViewer.prototype.render = function(updateDirection) {
   this.camera.fov = this.prop.vFov;
   this.camera.updateProjectionMatrix();
 
-  if (this.composer) {
+  if (this.prop.stereo_effect !== null) {
+    this.prop.stereo_effect.render(this.scene, this.camera);
+  }
+  else if (this.composer) {
     this.composer.render();
   }
   else {
@@ -486,4 +489,18 @@ PhotoSphereViewer.prototype.startKeyboardControl = function() {
  */
 PhotoSphereViewer.prototype.stopKeyboardControl = function() {
   window.removeEventListener('keydown', this);
+};
+
+
+/**
+ * Toggles the stereo effect (virtual reality).
+ * @public
+ * @return {void}
+ **/
+PhotoSphereViewer.prototype.toggleStereo = function() {
+  if (this.prop.stereo_effect !== null) {
+    this._stopStereo();
+  } else {
+    this._startStereo();
+  }
 };

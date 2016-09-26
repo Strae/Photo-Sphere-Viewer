@@ -116,7 +116,8 @@ PhotoSphereViewer.DEFAULTS = {
   loading_txt: 'Loading...',
   size: null,
   templates: {},
-  markers: []
+  markers: [],
+  eyeSeparation: 3
 };
 
 /**

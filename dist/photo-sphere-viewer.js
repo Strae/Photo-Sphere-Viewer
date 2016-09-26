@@ -177,7 +177,8 @@ function PhotoSphereViewer(options) {
       cropped_height: 0,
       cropped_x: 0,
       cropped_y: 0
-    }
+    },
+    stereo_effect: null
   };
 
   // init templates
@@ -676,6 +677,47 @@ PhotoSphereViewer.prototype._reverseAutorotate = function() {
     });
 };
 
+/**
+ * Starts the stereo effect.
+ * @private
+ * @return {void}
+ **/
+PhotoSphereViewer.prototype._startStereo = function() {
+  /*
+  // Need to fix
+  if (!this.isFullscreenEnabled()) {
+    this.toggleFullscreen();
+  }
+  */
+
+
+  this.prop.stereo_effect = new THREE.StereoEffect(this.renderer);
+  this.prop.stereo_effect.eyeSeparation = this.config.eyeSeparation;
+  this.prop.stereo_effect.setSize(this.prop.size.width, this.prop.size.height);
+  this.render();
+  //this.startGyroscopeControl();
+
+  /**
+   * Indicates that the stereo effect has been toggled.
+   * @callback PhotoSphereViewer~onStereoEffectToggled
+   * @param {boolean} enabled - `true` if stereo effect is enabled, `false` otherwise
+   **/
+  this.trigger('stereo-effect-start');
+};
+
+
+/**
+ * Stops the stereo effect.
+ * @private
+ * @return {void}
+ **/
+PhotoSphereViewer.prototype._stopStereo = function() {
+  this.prop.stereo_effect = null;
+  this.renderer.setSize(this.prop.size.width, this.prop.size.height);
+  this.render();
+  this.trigger('stereo-effect-stop');
+};
+
 
 /**
  * Number of pixels bellow which a mouse move will be considered as a click
@@ -795,7 +837,8 @@ PhotoSphereViewer.DEFAULTS = {
   loading_txt: 'Loading...',
   size: null,
   templates: {},
-  markers: []
+  markers: [],
+  eyeSeparation: 3
 };
 
 /**
@@ -1325,7 +1368,10 @@ PhotoSphereViewer.prototype.render = function(updateDirection) {
   this.camera.fov = this.prop.vFov;
   this.camera.updateProjectionMatrix();
 
-  if (this.composer) {
+  if (this.prop.stereo_effect !== null) {
+    this.prop.stereo_effect.render(this.scene, this.camera);
+  }
+  else if (this.composer) {
     this.composer.render();
   }
   else {
@@ -1727,6 +1773,20 @@ PhotoSphereViewer.prototype.startKeyboardControl = function() {
  */
 PhotoSphereViewer.prototype.stopKeyboardControl = function() {
   window.removeEventListener('keydown', this);
+};
+
+
+/**
+ * Toggles the stereo effect (virtual reality).
+ * @public
+ * @return {void}
+ **/
+PhotoSphereViewer.prototype.toggleStereo = function() {
+  if (this.prop.stereo_effect !== null) {
+    this._stopStereo();
+  } else {
+    this._startStereo();
+  }
 };
 
 
