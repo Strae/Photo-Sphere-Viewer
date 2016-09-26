@@ -117,7 +117,11 @@ PhotoSphereViewer.DEFAULTS = {
   size: null,
   templates: {},
   markers: [],
-  eyeSeparation: 3
+  eyeSeparation: 3,
+  caching: {
+    enabled: true,
+    maxSize: 5
+  }
 };
 
 /**

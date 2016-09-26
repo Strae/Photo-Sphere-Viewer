@@ -158,7 +158,11 @@ function PhotoSphereViewer(options) {
       cropped_x: 0,
       cropped_y: 0
     },
-    stereo_effect: null
+    stereo_effect: null,
+    cache: {
+      items: {},
+      registry: []
+    }
   };
 
   // init templates

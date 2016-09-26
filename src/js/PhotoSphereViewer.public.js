@@ -186,6 +186,9 @@ PhotoSphereViewer.prototype.destroy = function() {
  * @returns {promise}
  */
 PhotoSphereViewer.prototype.setPanorama = function(path, position, transition) {
+  if(this.isPanoLoading(path)){
+    return D.resolved(false);
+  }
   if (typeof position == 'boolean') {
     transition = position;
     position = undefined;
@@ -418,6 +421,7 @@ PhotoSphereViewer.prototype.animate = function(position, duration) {
     easing: 'inOutSine',
     onTick: this.rotate.bind(this)
   });
+  return this.prop.animation_promise;
 };
 
 /**
@@ -452,7 +456,7 @@ PhotoSphereViewer.prototype.zoom = function(level, render) {
  */
 PhotoSphereViewer.prototype.zoomIn = function() {
   if (this.prop.zoom_lvl < 100) {
-    this.zoom(this.prop.zoom_lvl + 1);
+    this.zoom(this.prop.zoom_lvl + 5);
   }
 };
 
@@ -461,7 +465,7 @@ PhotoSphereViewer.prototype.zoomIn = function() {
  */
 PhotoSphereViewer.prototype.zoomOut = function() {
   if (this.prop.zoom_lvl > 0) {
-    this.zoom(this.prop.zoom_lvl - 1);
+    this.zoom(this.prop.zoom_lvl - 5);
   }
 };
 
@@ -503,4 +507,74 @@ PhotoSphereViewer.prototype.toggleStereo = function() {
   } else {
     this._startStereo();
   }
+}
+
+/**
+ * Manually preload a panorama image (without showing it) and save it into internal cache.
+ * @param {String} pano - the file path
+ * @param {mixed} info - optionally information to send out with the events.
+ * @return {promise|false}
+ */
+PhotoSphereViewer.prototype.preloadPano = function(pano, info) {
+  if (false === this.config.caching.enabled) {
+    console.warn('The cache is disabled. Please use caching.enabled: true.');
+    return false;
+  }
+  var pinfo = info || null;
+  return this._preloadPanorama(pano, pinfo);
+};
+
+/**
+ * Remove a panorama image from the cache.
+ * @param {string} the file path
+ * @return {Boolean}
+ */
+PhotoSphereViewer.prototype.clearCachedPanoramas = function(pano) {
+  if (false === this.config.caching.enabled) {
+    console.warn('The cache is disabled.');
+    return true;
+  }
+  return this._clearTexture(pano);
+};
+
+/**
+ * Return true if the panorama is present in the cache.
+ * @param {string} the panorama file path.
+ * @return {Boolean} True if the panorama is fully loaded, false otherwise.
+ */
+PhotoSphereViewer.prototype.isPanoCached = function(pano) {
+  var cachedPano = this._getPanoCache(pano);
+  if (false === cachedPano) {
+    return false;
+  }
+  return cachedPano._internals.state === 2;
+};
+
+/**
+ * Return true if the panorama is present in the cache.
+ * @param {string} the panorama file path.
+ * @return {Boolean} True if the panorama is fully loaded, false otherwise.
+ */
+PhotoSphereViewer.prototype.isPanoLoading = function(pano) {
+  var cachedPano = this._getPanoCache(pano);
+  if (false === cachedPano) {
+    return false;
+  }
+  return cachedPano._internals.state === 1;
+};
+
+/**
+ * Return an estimated size of the cached panoramas.
+ * @return {integer} the aproximative cache size.
+ */
+PhotoSphereViewer.prototype.getCacheSize = function() {
+  return this.prop.cache.registry.length;
+};
+
+/**
+ * Return an estimated size of the cached panoramas.
+ * @return {integer} the aproximative cache size.
+ */
+PhotoSphereViewer.prototype.getCache = function() {
+  return this.prop.cache;
 };
