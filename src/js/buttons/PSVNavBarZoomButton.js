@@ -33,7 +33,7 @@ PSVNavBarZoomButton.prototype.create = function() {
   var zoom_minus = document.createElement('div');
   zoom_minus.className = 'psv-zoom-button-minus';
   zoom_minus.title = this.psv.config.lang.zoomOut;
-  this.setIcon('zoom-out.svg', zoom_minus);
+  //this.setIcon('zoom-out.svg', zoom_minus);
   this.container.appendChild(zoom_minus);
 
   var zoom_range_bg = document.createElement('div');
@@ -53,7 +53,7 @@ PSVNavBarZoomButton.prototype.create = function() {
   var zoom_plus = document.createElement('div');
   zoom_plus.className = 'psv-zoom-button-plus';
   zoom_plus.title = this.psv.config.lang.zoomIn;
-  this.setIcon('zoom-in.svg', zoom_plus);
+  //this.setIcon('zoom-in.svg', zoom_plus);
   this.container.appendChild(zoom_plus);
 
   this.zoom_range.addEventListener('mousedown', this);
